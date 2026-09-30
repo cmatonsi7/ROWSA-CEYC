@@ -25,7 +25,7 @@ select{font:inherit;padding:10px;border:2px solid var(--g);border-radius:8px;bac
 .join{font-size:.82rem;background:#eef6ee;border-radius:8px;padding:8px;margin-top:8px}a{color:var(--g)}
 #toast{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);background:var(--r);color:#fff;padding:10px 16px;border-radius:8px;display:none}
 </style></head><body>
-<header><img src="logo.png" alt="Logo"><h1>CEYC Zone One ROWSA</h1><p><b>5 October 2026 · 12:30 – 16:00</b></p>
+<header><img src="logo.png" alt="Logo"><h1>CEYC Zone One ROWSA</h1><p><b>3 October 2026 · 12:30 – 16:00</b></p>
 <p>Teams across Cape Town are out reaching people today. Find your cell, or join one near you.</p></header><div class="band"></div>
 <main><div class="tot" id="tot"></div><div id="state">Loading…</div>
 <div class="bar"><input id="q" placeholder="Search cell, leader, campus or area"><select id="ty"><option value="">All</option><option>Cell</option><option>Fellowship</option></select><button class="btn" id="near">Near me</button><button class="btn" id="csv">CSV</button></div>
@@ -33,7 +33,7 @@ select{font:inherit;padding:10px;border:2px solid var(--g);border-radius:8px;bac
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
 const API_URL='https://script.google.com/macros/s/AKfycbz-q-OK5eH2wwJ5P86TwTBFYvvePJLQbXBLh-RLvEF1Qjr-zvH48nuvBFYdyUHabduy/exec';
-const START=Date.parse('2026-10-05T12:30:00+02:00'),END=Date.parse('2026-10-05T16:00:00+02:00');
+const START=Date.parse('2026-10-03T12:30:00+02:00'),END=Date.parse('2026-10-03T16:00:00+02:00');
 const F=[['reached','People Reached'],['bornAgain','Born Again'],['spirit','Filled with the Holy Spirit'],['materials','Materials Distributed']];
 let cells=[],pending=0,pos=null,map,layer,last='';
 const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));

@@ -13,24 +13,27 @@ main{max-width:1000px;margin:auto;padding:14px}.tot{display:grid;grid-template-c
 input,button{font:inherit}input{flex:1;padding:10px;border:2px solid var(--g);border-radius:8px}
 .btn{background:var(--g);color:#fff;border:0;border-radius:8px;padding:10px 14px;cursor:pointer}.btn:hover{background:#08461f}
 #map{height:340px;border-radius:12px;margin:10px 0}#mapnote{font-size:.85rem;color:#555}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
-.card{background:#fff;border-radius:12px;border-top:6px solid var(--g);padding:14px;box-shadow:0 1px 4px #0002}
-.card h3{margin:0 0 4px}.tag{float:right;font-size:.75rem;border-radius:99px;padding:2px 10px;background:var(--y)}.Active{background:#2ecc71!important}.Completed{background:#bbb!important}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));column-gap:12px;row-gap:0}
+.card{background:#fff;border-radius:12px;border-top:6px solid var(--g);padding:14px;box-shadow:0 1px 4px #0002;margin-bottom:12px;display:flex;flex-direction:column}
+@supports (grid-template-rows:subgrid){.card{display:grid;grid-row:span 7;grid-template-rows:subgrid;row-gap:0}}
+.hd{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}.tags{display:flex;flex-direction:column;gap:4px;align-items:flex-end}.tag.ty{background:var(--n);color:#fff}
+select{font:inherit;padding:10px;border:2px solid var(--g);border-radius:8px;background:#fff}
+.card h3{margin:0 0 4px}.tag{font-size:.75rem;border-radius:99px;padding:2px 10px;background:var(--y);white-space:nowrap}.Active{background:#2ecc71!important}.Completed{background:#bbb!important}
 .meta{font-size:.9rem;color:#444;margin:2px 0}.ctr{display:flex;align-items:center;justify-content:space-between;border-top:1px solid #eee;padding:6px 0}
 .ctr span{flex:1;font-size:.88rem}.ctr b{min-width:42px;text-align:center;font-size:1.3rem}
 .ctr button{width:44px;height:44px;border:0;border-radius:50%;font-size:1.4rem;cursor:pointer}.p{background:var(--y)}.m{background:#e6e6e6;margin-right:6px}
 .join{font-size:.82rem;background:#eef6ee;border-radius:8px;padding:8px;margin-top:8px}a{color:var(--g)}
 #toast{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);background:var(--r);color:#fff;padding:10px 16px;border-radius:8px;display:none}
 </style></head><body>
-<header><img src="logo.png" alt="Logo"><h1>CEYC Zone One ROWSA</h1><p><b>5 October 2026 · 12:30 – 15:00</b></p>
+<header><img src="logo.png" alt="Logo"><h1>CEYC Zone One ROWSA</h1><p><b>5 October 2026 · 12:30 – 16:00</b></p>
 <p>Teams across Cape Town are out reaching people today. Find your cell, or join one near you.</p></header><div class="band"></div>
 <main><div class="tot" id="tot"></div><div id="state">Loading…</div>
-<div class="bar"><input id="q" placeholder="Search cell, leader, campus or area"><button class="btn" id="near">Near me</button><button class="btn" id="csv">CSV</button></div>
-<div id="map" hidden></div><div id="mapnote"></div><h2>Participating cells</h2><div class="grid" id="list"></div></main><div id="toast"></div>
+<div class="bar"><input id="q" placeholder="Search cell, leader, campus or area"><select id="ty"><option value="">All</option><option>Cell</option><option>Fellowship</option></select><button class="btn" id="near">Near me</button><button class="btn" id="csv">CSV</button></div>
+<div id="map" hidden></div><div id="mapnote"></div><h2>Cells and Fellowships</h2><div class="grid" id="list"></div></main><div id="toast"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
 const API_URL='https://script.google.com/macros/s/AKfycbz-q-OK5eH2wwJ5P86TwTBFYvvePJLQbXBLh-RLvEF1Qjr-zvH48nuvBFYdyUHabduy/exec';
-const START=Date.parse('2026-10-05T12:30:00+02:00'),END=Date.parse('2026-10-05T15:00:00+02:00');
+const START=Date.parse('2026-10-05T12:30:00+02:00'),END=Date.parse('2026-10-05T16:00:00+02:00');
 const F=[['reached','People Reached'],['bornAgain','Born Again'],['spirit','Filled with the Holy Spirit'],['materials','Materials Distributed']];
 let cells=[],pending=0,pos=null,map,layer,last='';
 const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -49,23 +52,22 @@ async function tap(id,f,d){const c=cells.find(x=>x.id===id);if(d<0&&!c[f])return
 function render(){
  $('#tot').innerHTML=F.map(([k,l])=>`<div><b>${cells.reduce((a,c)=>a+c[k],0).toLocaleString()}</b>${l}</div>`).join('');
  const q=$('#q').value.toLowerCase(),st=status();
- let v=cells.filter(c=>[c.name,c.leaders,c.baseLocation,c.allocation].join(' ').toLowerCase().includes(q));
+ let v=cells.filter(c=>[c.name,c.leaders,c.baseLocation,c.allocation].join(' ').toLowerCase().includes(q)&&(!$('#ty').value||(c.type||'Cell')===$('#ty').value));
  if(pos)v.sort((a,b)=>(hasPos(a)?km(a):1e9)-(hasPos(b)?km(b):1e9));
- $('#list').innerHTML=v.length?v.map(c=>`<div class="card"><span class="tag ${st}">${st}</span><h3>${esc(c.name)}</h3>
+ $('#list').innerHTML=v.length?v.map(c=>`<div class="card"><div class="hd"><h3>${esc(c.name)}</h3><div class="tags"><span class="tag ty">${esc(c.type||'Cell')}</span><span class="tag ${st}">${st}</span></div></div>
  <div class="meta"><b>Leader:</b> ${esc(c.leaders)}</div><div class="meta"><b>Area:</b> ${esc(c.baseLocation)}</div><div class="meta"><b>Outreach:</b> ${esc(c.allocation)}</div>
- <div class="meta">12:30 – 15:00${pos&&hasPos(c)?' · '+km(c).toFixed(1)+' km away':''}</div>
- ${hasPos(c)?`<a href="https://www.google.com/maps/dir/?api=1&destination=${c.lat},${c.lng}" target="_blank" rel="noopener">Directions</a>`:'<div class="meta"><i>Exact map position not available</i></div>'}
- ${F.map(([k,l])=>`<div class="ctr"><span>${l}</span><button class="m" onclick="tap('${c.id}','${k}',-1)" aria-label="Minus ${l}">−</button><b>${c[k]}</b><button class="p" onclick="tap('${c.id}','${k}',1)" aria-label="Plus ${l}">+</button></div>`).join('')}
+ <div class="meta">12:30 – 16:00${pos&&hasPos(c)?' · '+km(c).toFixed(1)+' km away':''}<br>${hasPos(c)?`<a href="https://www.google.com/maps/dir/?api=1&destination=${c.lat},${c.lng}" target="_blank" rel="noopener">Directions</a>`:'<i>Exact map position not available</i>'}</div>
+ <div>${F.map(([k,l])=>`<div class="ctr"><span>${l}</span><button class="m" onclick="tap('${c.id}','${k}',-1)" aria-label="Minus ${l}">−</button><b>${c[k]}</b><button class="p" onclick="tap('${c.id}','${k}',1)" aria-label="Plus ${l}">+</button></div>`).join('')}</div>
  <div class="join"><b>Join this outreach:</b> go to the outreach area above at 12:30 and ask for ${esc(c.leaders)}.</div></div>`).join(''):'<p>No cells match your search.</p>';
  const m=cells.filter(hasPos);$('#map').hidden=!m.length;
  $('#mapnote').textContent=m.length?(m.length<cells.length?(cells.length-m.length)+' cells have no map position yet.':''):'Map positions have not been added yet (add lat/lng in the sheet).';
  if(m.length){if(!map){map=L.map('map').setView([+m[0].lat,+m[0].lng],11);L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(map);layer=L.layerGroup().addTo(map)}
   layer.clearLayers();const col={Scheduled:'#14124a',Active:'#2ecc71',Completed:'#888'}[st];
   m.forEach(c=>L.circleMarker([+c.lat,+c.lng],{color:col,fillOpacity:.8}).bindPopup(`<b>${esc(c.name)}</b><br>${esc(c.leaders)}<br>${esc(c.allocation)}<br>People reached: ${c.reached}<br><a target="_blank" href="https://www.google.com/maps/dir/?api=1&destination=${c.lat},${c.lng}">Directions</a>`).addTo(layer))}}
-$('#q').oninput=render;
+$('#q').oninput=render;$('#ty').onchange=render;
 $('#near').onclick=()=>navigator.geolocation?navigator.geolocation.getCurrentPosition(p=>{pos={lat:p.coords.latitude,lng:p.coords.longitude};render()},()=>toast('Location not shared. You can still browse everything.')):toast('Location not supported.');
-$('#csv').onclick=()=>{const h=['name','leaders','baseLocation','allocation','reached','bornAgain','spirit','materials'];
- const t=[h,...cells.map(c=>h.map(k=>c[k]))].map(r=>r.map(x=>'"'+String(x).replace(/"/g,'""')+'"').join(',')).join('\n');
+$('#csv').onclick=()=>{const h=['name','leaders','baseLocation','allocation','type','reached','bornAgain','spirit','materials'];
+ const t=[h,...cells.map(c=>h.map(k=>c[k]??''))].map(r=>r.map(x=>'"'+String(x).replace(/"/g,'""')+'"').join(',')).join('\n');
  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:'text/csv'}));a.download='rowsa-stats.csv';a.click()};
 load();setInterval(load,8000);
 </script></body></html>
